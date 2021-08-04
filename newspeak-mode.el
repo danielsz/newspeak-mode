@@ -56,7 +56,7 @@
     ;; type hints
     (,(rx (seq ?< (* alphanumeric) (zero-or-more (seq ?\[ (zero-or-more (seq (* alphanumeric) ?, whitespace)) (* alphanumeric) ?\])) ?>)) . font-lock-type-face)
     ;; symbol literals
-    (,(rx (seq ?# (* graphic) whitespace)) . font-lock-keyword-face)
+    (,(rx (seq ?# (* alphanumeric))) . font-lock-keyword-face)
     ;; keyword send and setter send
     (,(rx (or alpha ?_) (* (or alphanumeric ?_)) (** 1 2 ?:)) . font-lock-function-name-face)
     ;;
