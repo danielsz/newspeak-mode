@@ -10,7 +10,7 @@
 ;; Major mode to edit Newspeak code (https://newspeaklanguage.org//)
 
 ;; Provides the following functionality:
-;; - Keyword highlighting.
+;; - Syntax highlighting.
 
 ;;; Code:
 
@@ -18,19 +18,16 @@
 
 (defconst newspeak-mode-syntax-table
   (let ((table (make-syntax-table)))
-    (modify-syntax-entry ?:  "." table) ; Symbol-char
-    (modify-syntax-entry ?_  "_" table) ; Symbol-char
-    (modify-syntax-entry ?\" "!" table) ; Comment (generic)
+    (modify-syntax-entry ?\( ". 1" table)
+    (modify-syntax-entry ?\) ". 4" table)
+    (modify-syntax-entry ?* ". 23" table) ; Comment
     (modify-syntax-entry ?'  "\"" table) ; String
-    (modify-syntax-entry ?#  "'" table) ; Symbol or Array constant
-    (modify-syntax-entry ?\( "()" table) ; Grouping
-    (modify-syntax-entry ?\) ")(" table) ; Grouping
     (modify-syntax-entry ?\[ "(]" table) ; Block-open
     (modify-syntax-entry ?\] ")[" table) ; Block-close
     (modify-syntax-entry ?{  "(}" table) ; Array-open
     (modify-syntax-entry ?}  "){" table) ; Array-close
-    (modify-syntax-entry ?$  "/" table) ; Character literal
-    (modify-syntax-entry ?!  "." table) ; End message / Delimit defs
+    (modify-syntax-entry ?<  "(>" table) ; Type-hint-open
+    (modify-syntax-entry ?>  ")<" table) ; Type-hint-close
     (modify-syntax-entry ?\; "." table) ; Cascade
     (modify-syntax-entry ?|  "." table) ; Temporaries
     (modify-syntax-entry ?^  "." table) ; Return
@@ -42,25 +39,32 @@
   :prefix "newspeak-mode-"
   :group 'languages)
 
+;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.ns\\'" . newspeak-mode))
 
-(defvar newspeak-identifier (rx (or alpha ?_) (* (or alphanumeric ?_)))
-  "A regular expression that matches a Newspeak identifier.")
-
-(defvar newspeak-keyword (concat newspeak-identifier ":") ; (rx (or alpha ?_) (* (or alphanumeric ?_)) ?:)
-  "A regular expression that matches a Newspeak keyword.")
+(defvar newspeak-prettify-symbols-alist
+  '(("^" . ?⇑)
+    ("::=" . ?⇐)))
 
 (defconst newspeak-font-lock
   `(;; reserved words
-    (,(rx (or "self" "super" "outer" "true" "false" "nil")) . font-lock-keyword-face)
-    ;; keyword send
-    (,(rx (or alpha ?_) (* (or alphanumeric ?_)) ?:) . font-lock-function-name-face)
-    ;; numbers
-    (,(rx (+ digit)) . font-lock-constant-face)))
+    (,(rx (or "yourself" "self" "super" "outer" "true" "false" "nil" (seq "class" whitespace))) . font-lock-constant-face)
+    ;; access modifiers
+    (,(rx (or "private" "public" "protected")) . font-lock-builtin-face)
+    ;; slots
+    (,(rx (seq (or alpha ?_) (* (or alphanumeric ?_)) (+ whitespace) ?= (+ whitespace))) . font-lock-variable-name-face)
+    ;; type hints
+    (,(rx (seq ?< (* alphanumeric) (zero-or-more (seq ?\[ (zero-or-more (seq (* alphanumeric) ?, whitespace)) (* alphanumeric) ?\])) ?>)) . font-lock-type-face)
+    ;; keyword send and setter send
+    (,(rx (or alpha ?_) (* (or alphanumeric ?_)) (** 1 2 ?:)) . font-lock-function-name-face)
+    ;;
+    ("Newspeak3" . font-lock-warning-face)))
 
+;;;###autoload
 (define-derived-mode newspeak-mode prog-mode "1984"
   "Major mode for editing Newspeak files."
-  (setq-local font-lock-defaults '(newspeak-font-lock)))
+  (setq-local font-lock-defaults '(newspeak-font-lock))
+  (setq-local prettify-symbols-alist newspeak-prettify-symbols-alist))
 
 (provide 'newspeak-mode)
 
