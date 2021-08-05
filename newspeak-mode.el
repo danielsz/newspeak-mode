@@ -38,7 +38,7 @@
   :group 'languages)
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '(,(rx ".ns" eos) . newspeak-mode))
+(add-to-list 'auto-mode-alist `(,(rx ".ns" eos) . newspeak-mode))
 
 (defvar newspeak-prettify-symbols-alist
   '(("^" . ?⇑)

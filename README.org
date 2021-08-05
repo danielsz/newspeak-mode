@@ -1,0 +1,20 @@
+* Newspeak mode
+
+Major mode (Emacs) for the Newspeak programming language.
+
+** Installation
+
+*** MELPA
+
+Newspeak mode will be available via the MELPA repository. Meanwhile, please refer to the section below.
+
+*** Manual installation
+
+Blah blah
+
+** Road map
+
+- [✓] Syntax highlighting
+- [ ] Indentation
+
+This is a work in progress.
