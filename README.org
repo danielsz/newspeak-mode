@@ -8,9 +8,14 @@ Major mode (Emacs) for the Newspeak programming language.
 
 Newspeak mode will be available via the MELPA repository. Meanwhile, please refer to the section below.
 
-*** Manual installation
+*** Manually
 
-Blah blah
+- Clone this repository.
+- Add the following to your ~init.el~:
+#+begin_src emacs-lisp
+(add-to-list 'load-path (expand-file-name "~/path/to/newspeak-mode.el"))
+(require 'newspeak-mode)
+#+end_src
 
 ** Road map
 
