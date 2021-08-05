@@ -1,6 +1,8 @@
 * Newspeak mode
 
-Major mode (/Emacs/) for the Newspeak programming language. This is a work in progress.
+Major mode (/Emacs/) for the [[https://newspeaklanguage.org/][Newspeak]] programming language.
+
+/Caveat emptor/: This is a work in progress.
 
 ** Installation
 
