@@ -20,6 +20,10 @@ Newspeak mode will be available via the MELPA repository. Meanwhile, please refe
 ** Road map
 
 - [✓] Syntax highlighting
-- [ ] Indentation
+- [ ] Automatic indentation.
+- [ ] Syntax-aware navigation.
+- [ ] Code templates.
+- [ ] REPL interaction
+- [✓] Support for prettify-symbols-mode.
 - [ ] Keyboard shortcuts
 
