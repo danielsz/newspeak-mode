@@ -46,21 +46,23 @@
 
 (defconst newspeak-font-lock
   `(;; reserved words
-    (,(rx (or "yourself" "self" "super" "outer" "true" "false" "nil" (seq "class" whitespace))) . font-lock-constant-face)
+    (,(rx (or "yourself" "self" "super" "outer" "true" "false" "nil" (seq symbol-start "class" symbol-end))) . font-lock-constant-face)
     ;; access modifiers
     (,(rx (or "private" "public" "protected")) . font-lock-builtin-face)
     ;; block arguments
     (,(rx word-start ":" (* alphanumeric)) . font-lock-keyword-face)
     ;; symbol literals
     (,(rx (seq ?# (* alphanumeric))) . font-lock-keyword-face)
+    ;; peculiar construct
+    (,(rx line-start "Newspeak3" line-end) . font-lock-warning-face)
+    ;; class names
+    (,(rx word-start upper-case (* alphanumeric)) . font-lock-type-face)
     ;; slots
     (,(rx (seq (or alpha ?_) (* (or alphanumeric ?_)) (+ whitespace) ?= (+ whitespace))) . font-lock-variable-name-face)
     ;; type hints
     (,(rx (seq ?< (* alphanumeric) (zero-or-more (seq ?\[ (zero-or-more (seq (* alphanumeric) ?, whitespace)) (* alphanumeric) ?\])) ?>)) . font-lock-type-face)
     ;; keyword send and setter send
-    (,(rx (or alpha ?_) (* (or alphanumeric ?_)) (** 1 2 ?:)) . font-lock-function-name-face)
-    ;; peculiar construct
-    (,(rx "Newspeak3") . font-lock-warning-face)))
+    (,(rx (or alpha ?_) (* (or alphanumeric ?_)) (** 1 2 ?:)) . font-lock-function-name-face)))
 
 ;;;###autoload
 (define-derived-mode newspeak-mode prog-mode "1984"

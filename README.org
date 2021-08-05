@@ -21,4 +21,5 @@ Newspeak mode will be available via the MELPA repository. Meanwhile, please refe
 
 - [✓] Syntax highlighting
 - [ ] Indentation
+- [ ] Keyboard shortcuts
 
