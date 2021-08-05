@@ -21,16 +21,14 @@
     (modify-syntax-entry ?\( ". 1" table)
     (modify-syntax-entry ?\) ". 4" table)
     (modify-syntax-entry ?* ". 23" table) ; Comment
-    (modify-syntax-entry ?'  "\"" table) ; String
+    (modify-syntax-entry ?' "\"" table) ; String
     (modify-syntax-entry ?\[ "(]" table) ; Block-open
     (modify-syntax-entry ?\] ")[" table) ; Block-close
-    (modify-syntax-entry ?{  "(}" table) ; Array-open
-    (modify-syntax-entry ?}  "){" table) ; Array-close
-    (modify-syntax-entry ?<  "(>" table) ; Type-hint-open
-    (modify-syntax-entry ?>  ")<" table) ; Type-hint-close
-    (modify-syntax-entry ?\; "." table) ; Cascade
-    (modify-syntax-entry ?|  "." table) ; Temporaries
-    (modify-syntax-entry ?^  "." table) ; Return
+    (modify-syntax-entry ?{ "(}" table) ; Array-open
+    (modify-syntax-entry ?} "){" table) ; Array-close
+    (modify-syntax-entry ?< "(>" table) ; Type-hint-open
+    (modify-syntax-entry ?> ")<" table) ; Type-hint-close
+    (modify-syntax-entry ?: "w" table)  ; colon is part of word
     table)
   "Newspeak mode syntax table.")
 
@@ -40,7 +38,7 @@
   :group 'languages)
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.ns\\'" . newspeak-mode))
+(add-to-list 'auto-mode-alist '(,(rx ".ns" eos) . newspeak-mode))
 
 (defvar newspeak-prettify-symbols-alist
   '(("^" . ?⇑)
@@ -51,15 +49,17 @@
     (,(rx (or "yourself" "self" "super" "outer" "true" "false" "nil" (seq "class" whitespace))) . font-lock-constant-face)
     ;; access modifiers
     (,(rx (or "private" "public" "protected")) . font-lock-builtin-face)
+    ;; block arguments
+    (,(rx word-start ":" (* alphanumeric)) . font-lock-keyword-face)
+    ;; symbol literals
+    (,(rx (seq ?# (* alphanumeric))) . font-lock-keyword-face)
     ;; slots
     (,(rx (seq (or alpha ?_) (* (or alphanumeric ?_)) (+ whitespace) ?= (+ whitespace))) . font-lock-variable-name-face)
     ;; type hints
     (,(rx (seq ?< (* alphanumeric) (zero-or-more (seq ?\[ (zero-or-more (seq (* alphanumeric) ?, whitespace)) (* alphanumeric) ?\])) ?>)) . font-lock-type-face)
-    ;; symbol literals
-    (,(rx (seq ?# (* alphanumeric))) . font-lock-keyword-face)
     ;; keyword send and setter send
     (,(rx (or alpha ?_) (* (or alphanumeric ?_)) (** 1 2 ?:)) . font-lock-function-name-face)
-    ;;
+    ;; peculiar construct
     (,(rx "Newspeak3") . font-lock-warning-face)))
 
 ;;;###autoload
