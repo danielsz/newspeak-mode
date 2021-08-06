@@ -15,7 +15,7 @@ Newspeak mode will be available via the MELPA repository. Meanwhile, please refe
 - Clone this repository.
 - Add the following to your initialization file (e.g. ~init.el~):
 #+begin_src emacs-lisp
-(add-to-list 'load-path (expand-file-name "~/path/to/newspeak-mode.el"))
+(add-to-list 'load-path (expand-file-name "~/path/to/newspeak-mode"))
 (require 'newspeak-mode)
 #+end_src
 
