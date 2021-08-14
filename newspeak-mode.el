@@ -7,7 +7,7 @@
 
 ;;; Commentary:
 
-;; Major mode to edit Newspeak code (https://newspeaklanguage.org//)
+;; Major mode for Newspeak (https://newspeaklanguage.org//)
 
 ;; Provides the following functionality:
 ;; - Syntax highlighting.
@@ -15,6 +15,9 @@
 ;;; Code:
 
 (require 'rx)
+(require 'smie)
+
+;;; syntax table
 
 (defconst newspeak-mode-syntax-table
   (let ((table (make-syntax-table)))
@@ -28,17 +31,22 @@
     (modify-syntax-entry ?} "){" table) ; Array-close
     (modify-syntax-entry ?< "(>" table) ; Type-hint-open
     (modify-syntax-entry ?> ")<" table) ; Type-hint-close
-    (modify-syntax-entry ?: "w" table)  ; colon is part of word
+    (modify-syntax-entry ?: "_" table)  ; colon is part of symbol
     table)
   "Newspeak mode syntax table.")
 
-(defgroup newspeak-mode nil
-  "Major mode for the Newspeak language"
-  :prefix "newspeak-mode-"
+;;;;; Customization
+
+(defgroup newspeak-mode ()
+  "Custom group for the Newspeak major mode"
   :group 'languages)
 
-;;;###autoload
-(add-to-list 'auto-mode-alist `(,(rx ".ns" eos) . newspeak-mode))
+(defcustom newspeak--indent-amount 4
+  "'Tab size'; used for simple indentation alignment."
+  :type 'integer)
+
+;;;;; font-lock
+;;;;; syntax highlighting
 
 (defvar newspeak-prettify-symbols-alist
   '(("^" . ?⇑)
@@ -64,11 +72,57 @@
     ;; keyword send and setter send
     (,(rx (or alpha ?_) (* (or alphanumeric ?_)) (** 1 2 ?:)) . font-lock-function-name-face)))
 
+;;;;
+
+;;;; SMIE
+;;;; https://www.gnu.org/software/emacs/manual/html_node/elisp/SMIE.html
+
+(defvar newspeak--smie-grammar
+  (smie-prec2->grammar
+   (smie-bnf->prec2
+    '((id)
+      (decls (id "=" exp)
+	     (decls ":" decls))
+      (exp (id)
+	   (exp "." exp)))
+    '((assoc ":"))
+    '((assoc ".")))))
+
+(defun newspeak--smie-rules (method arg)
+  "METHOD and ARG is rad."
+  (message (concat  "method: " (prin1-to-string method) " arg: " arg " hanging?: " (prin1-to-string (smie-rule-hanging-p))))
+  (pcase (cons method arg)
+    (`(:before . "=") 0)
+    (`(:before . "(") newspeak--indent-amount)
+    (`(:after . "(") 0)
+    (`(:before . "|") (smie-rule-parent))
+    (`(:after . "|") 0)
+    (`(:before . ".") (smie-rule-parent))
+    (`(:after . ".") 0)
+    (`(:elem . arg) newspeak--indent-amount)
+    (`(:list-intro . "(") (* 2 newspeak--indent-amount))
+    (x newspeak--indent-amount)))
+
+
+;;;;
+
+(defgroup newspeak-mode nil
+  "Major mode for the Newspeak language"
+  :prefix "newspeak-mode-"
+  :group 'languages)
+
+;;;###autoload
+(add-to-list 'auto-mode-alist `(,(rx ".ns" eos) . newspeak-mode))
+
+
 ;;;###autoload
 (define-derived-mode newspeak-mode prog-mode "1984"
   "Major mode for editing Newspeak files."
   (setq-local font-lock-defaults '(newspeak-font-lock))
-  (setq-local prettify-symbols-alist newspeak-prettify-symbols-alist))
+  (setq-local prettify-symbols-alist newspeak-prettify-symbols-alist)
+  (setq-local comment-start "(*")
+  (setq-local comment-end "*)")
+  (smie-setup newspeak--smie-grammar #'newspeak--smie-rules))
 
 (provide 'newspeak-mode)
 
