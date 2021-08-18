@@ -41,12 +41,58 @@
   "Custom group for the Newspeak major mode"
   :group 'languages)
 
-(defcustom newspeak--indent-amount 4
-  "'Tab size'; used for simple indentation alignment."
-  :type 'integer)
+
+(defgroup newspeak-mode-faces nil
+  "Special faces for Newspeak mode."
+  :group 'newspeak-mode)
 
 ;;;;; font-lock
 ;;;;; syntax highlighting
+
+(defface newspeak--font-lock-type-face
+  '((t (:inherit font-lock-type-face :bold t)))
+  "Face description for types"
+  :group 'newspeak-mode-faces)
+
+(defface newspeak--font-lock-builtin-face
+  '((t (:inherit font-lock-builtin-face)))
+  "Face description for access modifiers"
+  :group 'newspeak-mode-faces)
+
+(defface newspeak--font-lock-constant-face
+  '((t (:inherit font-lock-constant-face)))
+  "Face description for reserved keywords"
+  :group 'newspeak-mode-faces)
+
+(defface newspeak--font-lock-keyword-face
+  '((t (:inherit font-lock-keyword-face)))
+  "Face description for block arguments"
+  :group 'newspeak-mode-faces)
+
+(defface newspeak--font-lock-warning-face
+  '((t (:inherit font-lock-warning-face)))
+  "Face description for `Newspeak3'"
+  :group 'newspeak-mode-faces)
+
+(defface newspeak--font-lock-variable-name-face
+  '((t (:inherit font-lock-variable-name-face)))
+  "Face description for slot assignments"
+  :group 'newspeak-mode-faces)
+
+(defface newspeak--font-lock-function-name-face
+  '((t (:inherit font-lock-function-name-face)))
+  "Face description for keyword and setter sends"
+  :group 'newspeak-mode-faces)
+
+(defface newspeak--font-lock-string-face
+  '((t (:inherit font-lock-string-face)))
+  "Face description for strings"
+  :group 'newspeak-mode-faces)
+
+(defface newspeak--font-lock-comment-face
+  '((t (:inherit font-lock-comment-face)))
+  "Face description for comments"
+  :group 'newspeak-mode-faces)
 
 (defvar newspeak-prettify-symbols-alist
   '(("^" . ?⇑)
@@ -54,25 +100,29 @@
 
 (defconst newspeak-font-lock
   `(;; reserved words
-    (,(rx (or "yourself" "self" "super" "outer" "true" "false" "nil" (seq symbol-start "class" symbol-end))) . font-lock-constant-face)
+    (,(rx (or "yourself" "self" "super" "outer" "true" "false" "nil" (seq symbol-start "class" symbol-end))) . 'newspeak--font-lock-constant-face)
     ;; access modifiers
-    (,(rx (or "private" "public" "protected")) . font-lock-builtin-face)
+    (,(rx (or "private" "public" "protected")) . 'newspeak--font-lock-builtin-face)
     ;; block arguments
-    (,(rx word-start ":" (* alphanumeric)) . font-lock-keyword-face)
+    (,(rx word-start ":" (* alphanumeric)) . 'newspeak--font-lock-keyword-face)
     ;; symbol literals
-    (,(rx (seq ?# (* alphanumeric))) . font-lock-keyword-face)
+    (,(rx (seq ?# (* alphanumeric))) . 'newspeak--font-lock-keyword-face)
     ;; peculiar construct
-    (,(rx line-start "Newspeak3" line-end) . font-lock-warning-face)
+    (,(rx line-start "Newspeak3" line-end) . 'newspeak--font-lock-warning-face)
     ;; class names
-    (,(rx word-start upper-case (* alphanumeric)) . font-lock-type-face)
+    (,(rx word-start upper-case (* alphanumeric)) . 'newspeak--font-lock-type-face)
     ;; slots
-    (,(rx (seq (or alpha ?_) (* (or alphanumeric ?_)) (+ whitespace) ?= (+ whitespace))) . font-lock-variable-name-face)
+    (,(rx (seq (or alpha ?_) (* (or alphanumeric ?_)) (+ whitespace) ?= (+ whitespace))) . 'newspeak--font-lock-variable-name-face)
     ;; type hints
-    (,(rx (seq ?< (* alphanumeric) (zero-or-more (seq ?\[ (zero-or-more (seq (* alphanumeric) ?, whitespace)) (* alphanumeric) ?\])) ?>)) . font-lock-type-face)
+    (,(rx (seq ?< (* alphanumeric) (zero-or-more (seq ?\[ (zero-or-more (seq (* alphanumeric) ?, whitespace)) (* alphanumeric) ?\])) ?>)) . 'newspeak--font-lock-type-face)
     ;; keyword send and setter send
-    (,(rx (or alpha ?_) (* (or alphanumeric ?_)) (** 1 2 ?:)) . font-lock-function-name-face)))
+    (,(rx (or alpha ?_) (* (or alphanumeric ?_)) (** 1 2 ?:)) . 'newspeak--font-lock-function-name-face)))
 
 ;;;;
+
+(defcustom newspeak--indent-amount 4
+  "'Tab size'; used for simple indentation alignment."
+  :type 'integer)
 
 ;;;; SMIE
 ;;;; https://www.gnu.org/software/emacs/manual/html_node/elisp/SMIE.html
@@ -119,6 +169,8 @@
 (define-derived-mode newspeak-mode prog-mode "1984"
   "Major mode for editing Newspeak files."
   (setq-local font-lock-defaults '(newspeak-font-lock))
+  (setq-local font-lock-string-face 'newspeak--font-lock-string-face)
+  (setq-local font-lock-comment-face 'newspeak--font-lock-comment-face)
   (setq-local prettify-symbols-alist newspeak-prettify-symbols-alist)
   (setq-local comment-start "(*")
   (setq-local comment-end "*)")

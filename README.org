@@ -19,6 +19,33 @@ Newspeak mode will be available via the MELPA repository. Meanwhile, please refe
 (require 'newspeak-mode)
 #+end_src
 
+** Features
+
+*** Syntax highlighting
+
+Fully configurable under the customization group ~newspeak-mode-faces~. 
+
+- ~M-x customize~ and type ~newspeak-mode-faces~ in the search bar.
+- ~M-x customize-group~ and select ~newspeak-mode-faces~
+
+The font lock system is mapped onto Newspeak constructs in the following way.
+
+| Font lock          | Newspeak construct       |
+|--------------------+--------------------------|
+|                    |                          |
+| Builtin Face       | Access modifiers         |
+| Comment Face       | Comments                 |
+| Constant Face      | Reserved keywords        |
+| Function Name Face | Keyword and setter sends |
+| Keyword Face       | Block arguments          |
+| String Face        | Strings                  |
+| Type Face          | Types                    |
+| Variable Name      | Slot assignments         |
+| Warning Face       | Language shebang         |                    
+
+Modify the faces at will.
+
+
 ** Road map
 
 - [✓] Syntax highlighting
