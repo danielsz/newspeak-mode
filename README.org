@@ -23,11 +23,14 @@ Newspeak mode will be available via the MELPA repository. Meanwhile, please refe
 
 *** Syntax highlighting
 
-Fully configurable under the customization group ~newspeak-mode-faces~. 
+Fully configurable under the customization group ~newspeak-mode-faces~.
+
+The following are different ways to customize syntax highlighting of Newspeak mode, and all are equally valid.
 
 - ~M-x customize~ and type ~newspeak-mode-faces~ in the search bar.
 - ~M-x customize-group~ and select ~newspeak-mode-faces~
-
+- ~M-x customize-face~, type ~newspeak--~ and press ~TAB~ for completion.
+   
 The font lock system is mapped onto Newspeak constructs in the following way.
 
 | Font lock          | Newspeak construct       |
@@ -41,7 +44,7 @@ The font lock system is mapped onto Newspeak constructs in the following way.
 | String Face        | Strings                  |
 | Type Face          | Types                    |
 | Variable Name      | Slot assignments         |
-| Warning Face       | Language shebang         |                    
+| Warning Face       | Language shebang         |
 
 Modify the faces at will.
 
