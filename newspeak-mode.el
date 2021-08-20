@@ -21,17 +21,14 @@
 
 (defconst newspeak-mode-syntax-table
   (let ((table (make-syntax-table)))
-    (modify-syntax-entry ?\( ". 1" table)
-    (modify-syntax-entry ?\) ". 4" table)
-    (modify-syntax-entry ?* ". 23" table) ; Comment
+    (modify-syntax-entry ?\( "()1" table)
+    (modify-syntax-entry ?\) ")(4" table)
+    (modify-syntax-entry ?* ".23" table) ; Comment
     (modify-syntax-entry ?' "\"" table) ; String
-    (modify-syntax-entry ?\[ "(]" table) ; Block-open
-    (modify-syntax-entry ?\] ")[" table) ; Block-close
-    (modify-syntax-entry ?{ "(}" table) ; Array-open
-    (modify-syntax-entry ?} "){" table) ; Array-close
-    (modify-syntax-entry ?< "(>" table) ; Type-hint-open
-    (modify-syntax-entry ?> ")<" table) ; Type-hint-close
+    (modify-syntax-entry ?# "'" table) ; Expression prefix
     (modify-syntax-entry ?: "_" table)  ; colon is part of symbol
+;;    (modify-syntax-entry ?< "(>" table) ; Type-hint-open interferes with rainbow-delimiters mode for symbol >
+;;    (modify-syntax-entry ?> ")<" table) ; Type-hint-close
     table)
   "Newspeak mode syntax table.")
 
@@ -152,7 +149,6 @@
     (`(:elem . arg) newspeak--indent-amount)
     (`(:list-intro . "(") (* 2 newspeak--indent-amount))
     (x newspeak--indent-amount)))
-
 
 ;;;;
 

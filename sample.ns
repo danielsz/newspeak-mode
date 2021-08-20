@@ -1,0 +1,132 @@
+Newspeak3
+'Root'
+class Foo usingPlatform: p = (
+(*
+The class comment is not indented. It's text begins on the line below the start of the comment.
+In multiline comments, align each line with its predecessor.
+
+But respect line breaks.
+*)
+  (* The slot declarations are indented two characters.
+     Ordinary comments align with the construct after them. *)
+  |
+  (* If all the slots don't fit on a line, then they align with the vertical bars *)
+  private MutableAddableList = MutableList mixinApply: AddableList. 
+  (* -- streams -- *)	
+  private ListReadStream = p streams SeqCltnReadStream. 	
+  private ListReadWriteStream = p streams SeqCltnReadWriteStream.		
+  (* magic collections *)
+  (* Not yet supported by NS2JS or NS2Dart *)	
+  public WeakArray = Future computing: [p squeak WeakArray]. 
+  |
+) (
+(* nested classes are not indented *)
+class AbstractList = Collection (
+(* This class implements the read-only protocol for indexed collections that order their elements using integer indices. *)
+(* parens align with the line that opened them *)
+) (
+(* in types, the return symbol is preceded by and followed by a space *)
+(* There must be a space between the last type and the parenthesis that starts the method *)
+(* methods are not indented *)
+public allButFirst ^ <MutableList[E]> = (
+  (* code in a method is indented two spaces *)
+  (* No space after the ^ in expressions *)
+  ^copyFrom: 2 to: size
+)
+public allButLast ^ <MutableList[E]> = (
+  ^copyFrom: 1 to: size - 1
+)
+protected collectUsingAtPut: map <[:E | R def]> ^ <List[R]> = (
+  (* If the slots fit on a line, we keep them that way *)
+  | c <MutableList[R]> |
+  (* comments refer to the succeeding construct *)
+  c:: (* Inside an expression, we try and keep them on a line  *) newForCollectUsingAtPut: size.
+  (* if a block fits on a line, we do so *)
+  1 to: self size do:[:i <Integer> | c at: i put: (map value: (at: i))].
+  ^c
+)
+public copyReplaceAll: oldSub <List[Object]> with: newSub <List[X]> ^ <MutableList[EX | X]> = (
+  (* {where EX is returnType of #anElement message of receiverType;
+     where X is returnType of #anElement message of arg 2} *)
+  |
+  spots <List[Integer]>
+  subDelta <Integer>
+  |
+  newSubSize:: newSub size.
+  oldSubSize:: oldSub size.
+  subDelta:: newSub size - oldSubSize.
+  spots:: indicesOfSubCollection: oldSub.
+
+  (* This guarantee is typesafe since the inference clause guarantees that E < EX at the call site *)
+  safeself:: (* guaranteed <List[EX]> *) self.
+  (* If a block won't fit on the line, it opens on the line it starts;
+     code inside indents 2 spaces;
+     The closing bracket aligns with the line that started the block. *)
+  spots size = 0 ifTrue: [
+    copy:: safeself newCopyOfSize: size
+		    thatCanAlsoHoldElementsOf: newSub.
+    copy replaceFrom: 1 to: size with: safeself.
+    ^copy
+  ].
+  (* When a multi-keyword send doesn't fit on a line, align the subsequent
+     keywords to the first one *)
+  copy:: safeself newCopyOfSize: size + (spots size * subDelta)
+		  thatCanAlsoHoldElementsOf: newSub.
+  (* If a series of sends won't fit on a line, maybe we'd like to put each send
+     on a line of its own, indented two spaces from the original receiver *)
+  consider
+    a
+    really
+    long
+    message
+    send
+    like
+    self
+    foo
+    bar
+    baz
+    snafu
+    etc
+    etc
+    & so on and on
+    and: [so forth ad infinitum and beyond and even further so it wont fit on a line].
+  current:: 1.
+  offset:: 0.
+  (* in a multi-line block, we try and keep its parameters on the same
+     line where it started *)
+  spots do:[:spot <Int>|
+    | offspot <Int> |
+    offspot:: spot + offset.
+    (* copy segment of self before the next occurrence *)
+    copy replaceFrom: current + offset
+	 to: offspot - 1
+	 with: safeself
+	 startingAt: current.
+    (* copy the new subcollection at the next occurrence *)
+    copy replaceFrom: offspot
+	 to: (offspot + newSubSize) - 1
+	 with: newSub.
+	 current:: spot + oldSubSize.
+	 offset:: offset + subDelta.
+  ].
+  (* But if they don't fit, place the parameters one per line, starting on the next line, indented two characters *)
+  copy something with a block action: [
+    :a <ALongTypeName>
+    :b <AnEvenLongerGenericType[ALongParameter, AndAnotherOne, AndAnother, AndYetANother, AndANestedGeneric]>
+    :c
+    :d
+    (* always keep a space betwee the last parameter and the vertical bar *)
+    :e |
+    (* the block locals go on a separate line from the parameters if we have multiple lines *)
+    | block local slots |
+  ]
+  ^copy
+)
+(* class ends with paren, followed by class methods section *)
+) : (
+public baz: x <Integer> = (
+  ^3
+)
+)
+(* if there are no class methods, we could elide the class section, but not essential *)
+)
