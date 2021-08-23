@@ -21,9 +21,9 @@
 
 (defconst newspeak-mode-syntax-table
   (let ((table (make-syntax-table)))
-    (modify-syntax-entry ?\( "()1" table)
-    (modify-syntax-entry ?\) ")(4" table)
-    (modify-syntax-entry ?* ".23" table) ; Comment
+    (modify-syntax-entry ?\( "() 1" table)
+    (modify-syntax-entry ?\) ")( 4" table)
+    (modify-syntax-entry ?* ". 23" table) ; Comment
     (modify-syntax-entry ?' "\"" table) ; String
     (modify-syntax-entry ?# "'" table) ; Expression prefix
     (modify-syntax-entry ?: "_" table)  ; colon is part of symbol
