@@ -48,6 +48,13 @@ The font lock system is mapped onto Newspeak constructs in the following way.
 
 Modify the faces at will.
 
+**** Matching parentheses
+
+Because this is Emacs, matching parentheses is best left to the myriad of modes available to achieve just that. Perhaps ~M-x show-paren-mode~ is here of interest. [[https://github.com/Fanael/rainbow-delimiters][rainbow-delimiters]] works nicely, too.
+
+#+begin_src emacs-lisp
+(add-hook 'newspeak-mode-hook 'rainbow-delimiters-mode)
+#+end_src
 
 ** Road map
 
