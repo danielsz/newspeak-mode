@@ -27,8 +27,8 @@
     (modify-syntax-entry ?' "\"" table) ; String
     (modify-syntax-entry ?# "'" table) ; Expression prefix
     (modify-syntax-entry ?: "_" table)  ; colon is part of symbol
-;;    (modify-syntax-entry ?< "(>" table) ; Type-hint-open interferes with rainbow-delimiters mode for symbol >
-;;    (modify-syntax-entry ?> ")<" table) ; Type-hint-close
+    (modify-syntax-entry ?< "(>" table) ; Type-hint-open interferes with rainbow-delimiters mode for symbol >
+    (modify-syntax-entry ?> ")<" table) ; Type-hint-close
     table)
   "Newspeak mode syntax table.")
 
@@ -117,7 +117,7 @@
 
 ;;;;
 
-(defcustom newspeak--indent-amount 4
+(defcustom newspeak--indent-amount 2
   "'Tab size'; used for simple indentation alignment."
   :type 'integer)
 
