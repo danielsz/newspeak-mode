@@ -23,6 +23,7 @@
   (let ((table (make-syntax-table)))
     (modify-syntax-entry ?\( "() 1" table)
     (modify-syntax-entry ?\) ")( 4" table)
+    (modify-syntax-entry ?|  "." table) ; punctuation
     (modify-syntax-entry ?* ". 23" table) ; Comment
     (modify-syntax-entry ?' "\"" table) ; String
     (modify-syntax-entry ?# "'" table) ; Expression prefix
