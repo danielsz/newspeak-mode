@@ -96,25 +96,28 @@
   '(("^" . ?⇑)
     ("::=" . ?⇐)))
 
+;; regexes definitions
+
+(defconst newspeak--reserved-words (rx (or "yourself" "super" "outer" "true" "false" "nil" (seq symbol-start "self" symbol-end) (seq symbol-start "class" symbol-end))))
+(defconst newspeak--access-modifiers (rx (or "private" "public" "protected")))
+(defconst newspeak--block-arguments (rx word-start ":" (* alphanumeric)))
+(defconst newspeak--symbol-literals (rx (seq ?# (* alphanumeric))))
+(defconst newspeak--peculiar-construct (rx line-start "Newspeak3" line-end))
+(defconst newspeak--class-names (rx word-start upper-case (* alphanumeric)))
+(defconst newspeak--slots (rx (seq (or alpha ?_) (* (or alphanumeric ?_)) (+ whitespace) ?= (+ whitespace))))
+(defconst newspeak--type-hints (rx (seq ?< (* alphanumeric) (zero-or-more (seq ?\[ (zero-or-more (seq (* alphanumeric) ?, whitespace)) (* alphanumeric) ?\])) ?>)))
+(defconst newspeak--keyword-or-setter-send (rx (or alpha ?_) (* (or alphanumeric ?_)) (** 1 2 ?:)))
+
 (defconst newspeak-font-lock
-  `(;; reserved words
-    (,(rx (or "yourself" "self" "super" "outer" "true" "false" "nil" (seq symbol-start "class" symbol-end))) . 'newspeak--font-lock-constant-face)
-    ;; access modifiers
-    (,(rx (or "private" "public" "protected")) . 'newspeak--font-lock-builtin-face)
-    ;; block arguments
-    (,(rx word-start ":" (* alphanumeric)) . 'newspeak--font-lock-keyword-face)
-    ;; symbol literals
-    (,(rx (seq ?# (* alphanumeric))) . 'newspeak--font-lock-keyword-face)
-    ;; peculiar construct
-    (,(rx line-start "Newspeak3" line-end) . 'newspeak--font-lock-warning-face)
-    ;; class names
-    (,(rx word-start upper-case (* alphanumeric)) . 'newspeak--font-lock-type-face)
-    ;; slots
-    (,(rx (seq (or alpha ?_) (* (or alphanumeric ?_)) (+ whitespace) ?= (+ whitespace))) . 'newspeak--font-lock-variable-name-face)
-    ;; type hints
-    (,(rx (seq ?< (* alphanumeric) (zero-or-more (seq ?\[ (zero-or-more (seq (* alphanumeric) ?, whitespace)) (* alphanumeric) ?\])) ?>)) . 'newspeak--font-lock-type-face)
-    ;; keyword send and setter send
-    (,(rx (or alpha ?_) (* (or alphanumeric ?_)) (** 1 2 ?:)) . 'newspeak--font-lock-function-name-face)))
+  `((,newspeak--reserved-words . 'newspeak--font-lock-constant-face)  ;; reserved words
+    (,newspeak--access-modifiers . 'newspeak--font-lock-builtin-face) ;; access modifiers
+    (,newspeak--block-arguments . 'newspeak--font-lock-keyword-face)  ;; block arguments
+    (,newspeak--symbol-literals . 'newspeak--font-lock-keyword-face)  ;; symbol literals
+    (,newspeak--peculiar-construct . 'newspeak--font-lock-warning-face)     ;; peculiar construct
+    (,newspeak--class-names . 'newspeak--font-lock-type-face) ;; class names
+    (,newspeak--slots . 'newspeak--font-lock-variable-name-face)     ;; slots
+    (,newspeak--type-hints . 'newspeak--font-lock-type-face)     ;; type hints
+    (,newspeak--keyword-or-setter-send . 'newspeak--font-lock-function-name-face)))     ;; keyword send and setter send
 
 ;;;;
 
@@ -129,27 +132,54 @@
   (smie-prec2->grammar
    (smie-bnf->prec2
     '((id)
-      (decls (id "=" exp)
-	     (decls ":" decls))
       (exp (id)
-	   (exp "." exp)))
+	   ("|-open" exp "|")
+	   ("(" exp ")")
+	   ("<" exp ">")
+	   ("[" exp "]")
+	   ("^" exp)
+	   ("modifier" id "=" exp)))
     '((assoc ":"))
-    '((assoc ".")))))
+    '((assoc ".") (assoc "^")))))
 
 (defun newspeak--smie-rules (method arg)
   "METHOD and ARG is rad."
-  (message (concat  "method: " (prin1-to-string method) " arg: " arg " hanging?: " (prin1-to-string (smie-rule-hanging-p))))
+  (message (format  "method: %s arg: %s hanging?: %s first?: %s" method arg (smie-rule-hanging-p) (smie-rule-bolp)))
   (pcase (cons method arg)
-    (`(:before . "=") 0)
-    (`(:before . "(") newspeak--indent-amount)
+    (`(:before . "=") (cond
+		       ((smie-rule-prev-p "method") newspeak--indent-amount)
+		       (t 0)))
+    (`(:after . "=") (smie-rule-separator method))
+    (`(:before . "class") 0)
+    (`(:before . "|-open") 0)
+    (`(:before . "(") (cond
+		       ((looking-at "class") 0)
+		       (t newspeak--indent-amount)))
     (`(:after . "(") 0)
-    (`(:before . "|") (smie-rule-parent))
-    (`(:after . "|") 0)
-    (`(:before . ".") (smie-rule-parent))
+    (`(:after . ")") 0)
+    (`(:before . "[") newspeak--indent-amount)
+    (`(:before . ".") 0)
     (`(:after . ".") 0)
-    (`(:elem . arg) newspeak--indent-amount)
-    (`(:list-intro . "(") (* 2 newspeak--indent-amount))
-    (x newspeak--indent-amount)))
+    (`(:list-intro . " ") 0)
+    (_ newspeak--indent-amount)))
+
+;; (defvar newspeaks--keywords-regexp
+;;   (regexp-opt '("|" "class")))
+
+(defun newspeak--smie-forward-token ()
+  "Skip token forward and return it, along with its levels."
+  (let ((tok (smie-default-forward-token)))
+    (cond
+     ((eq ?| tok) "|-open")
+     (t tok))))
+
+(defun newspeak--smie-backward-token ()
+  "Skip token backward and return it, along with its levels."
+  (let ((tok (smie-default-backward-token)))
+    (cond
+     ((member tok '("public" "private" "protected")) "modifier")
+     ((eq ?| tok) "|")
+     (t tok))))
 
 ;;;;
 
@@ -161,7 +191,6 @@
 ;;;###autoload
 (add-to-list 'auto-mode-alist `(,(rx ".ns" eos) . newspeak-mode))
 
-
 ;;;###autoload
 (define-derived-mode newspeak-mode prog-mode "1984"
   "Major mode for editing Newspeak files."
@@ -171,7 +200,9 @@
   (setq-local prettify-symbols-alist newspeak-prettify-symbols-alist)
   (setq-local comment-start "(*")
   (setq-local comment-end "*)")
-  (smie-setup newspeak--smie-grammar #'newspeak--smie-rules))
+  (smie-setup newspeak--smie-grammar #'newspeak--smie-rules
+	      :forward-token #'newspeak--smie-forward-token
+	      :backward-token #'newspeak--smie-backward-token))
 
 (provide 'newspeak-mode)
 
