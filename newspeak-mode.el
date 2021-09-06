@@ -109,15 +109,15 @@
 (defconst newspeak--keyword-or-setter-send (rx (or alpha ?_) (* (or alphanumeric ?_)) (** 1 2 ?:)))
 
 (defconst newspeak-font-lock
-  `((,newspeak--reserved-words . 'newspeak--font-lock-constant-face)  ;; reserved words
-    (,newspeak--access-modifiers . 'newspeak--font-lock-builtin-face) ;; access modifiers
-    (,newspeak--block-arguments . 'newspeak--font-lock-keyword-face)  ;; block arguments
-    (,newspeak--symbol-literals . 'newspeak--font-lock-keyword-face)  ;; symbol literals
-    (,newspeak--peculiar-construct . 'newspeak--font-lock-warning-face)     ;; peculiar construct
-    (,newspeak--class-names . 'newspeak--font-lock-type-face) ;; class names
-    (,newspeak--slots . 'newspeak--font-lock-variable-name-face)     ;; slots
-    (,newspeak--type-hints . 'newspeak--font-lock-type-face)     ;; type hints
-    (,newspeak--keyword-or-setter-send . 'newspeak--font-lock-function-name-face)))     ;; keyword send and setter send
+  `((,newspeak--reserved-words . 'newspeak--font-lock-constant-face)                 ;; reserved words
+    (,newspeak--access-modifiers . 'newspeak--font-lock-builtin-face)                ;; access modifiers
+    (,newspeak--block-arguments . 'newspeak--font-lock-keyword-face)                 ;; block arguments
+    (,newspeak--symbol-literals . 'newspeak--font-lock-keyword-face)                 ;; symbol literals
+    (,newspeak--peculiar-construct . 'newspeak--font-lock-warning-face)              ;; peculiar construct
+    (,newspeak--class-names . 'newspeak--font-lock-type-face)                        ;; class names
+    (,newspeak--slots . 'newspeak--font-lock-variable-name-face)                     ;; slots
+    (,newspeak--type-hints . 'newspeak--font-lock-type-face)                         ;; type hints
+    (,newspeak--keyword-or-setter-send . 'newspeak--font-lock-function-name-face)))  ;; keyword send and setter send
 
 ;;;;
 
@@ -133,53 +133,119 @@
    (smie-bnf->prec2
     '((id)
       (exp (id)
-	   ("|-open" exp "|")
-	   ("(" exp ")")
-	   ("<" exp ">")
-	   ("[" exp "]")
-	   ("^" exp)
-	   ("modifier" id "=" exp)))
+	   ("open-parenthesis" exp "close-parenthesis")
+	   ("class" exp)
+	   ("modifier" exp)))
     '((assoc ":"))
-    '((assoc ".") (assoc "^")))))
+    '((assoc ".")))))
 
 (defun newspeak--smie-rules (method arg)
   "METHOD and ARG is rad."
   (message (format  "method: %s arg: %s hanging?: %s first?: %s" method arg (smie-rule-hanging-p) (smie-rule-bolp)))
   (pcase (cons method arg)
-    (`(:before . "=") (cond
-		       ((smie-rule-prev-p "method") newspeak--indent-amount)
-		       (t 0)))
-    (`(:after . "=") (smie-rule-separator method))
+    (`(:elem . basic) newspeak--indent-amount)
     (`(:before . "class") 0)
-    (`(:before . "|-open") 0)
     (`(:before . "(") (cond
-		       ((looking-at "class") 0)
+		       ((string= "comment" (car (newspeak--look-ahead 2))) 0)
+		       ((string= "class" (car (newspeak--look-ahead 2))) 0)
+		       ((string= "|" (car (newspeak--look-ahead 2))) newspeak--indent-amount)
 		       (t newspeak--indent-amount)))
+    (`(:before . "=") 0)
     (`(:after . "(") 0)
     (`(:after . ")") 0)
     (`(:before . "[") newspeak--indent-amount)
-    (`(:before . ".") 0)
+    (`(:before . ".") (if (smie-rule-hanging-p)
+			  (smie-rule-parent)
+			0))
     (`(:after . ".") 0)
-    (`(:list-intro . " ") 0)
+    (`(:list-intro . arg) t)
     (_ newspeak--indent-amount)))
 
-;; (defvar newspeaks--keywords-regexp
-;;   (regexp-opt '("|" "class")))
+(defun newspeak--thought-control (tok)
+  "Take a TOK and return a simpler one."
+  (cond
+     ((string-match newspeak--access-modifiers tok) "modifier")
+     ((string-match newspeak--class-names tok) "class-name")
+     ((string-match newspeak--keyword-or-setter-send tok) "keyword-or-setter-send")
+     ((string= tok "class") "class")
+     ((eq ?\( (string-to-char tok)) "open-parenthesis")
+     ((eq ?\) (string-to-char tok)) "close-parenthesis")
+     ((eq ?^ (string-to-char tok)) "return")
+     ((eq ?| (string-to-char tok)) "|")
+     (t tok)))
+
+;; ((eq ?> (char-before)) (let ((current-pos (point))
+;; 				 (pos (re-search-backward newspeak--type-hints nil t)))
+;; 			     (if (and pos (= current-pos (match-beginning 0)))
+;; 				 (progn (goto-char (match-end 0))
+;; 					"type-hint")
+;; 			       (progn (goto-char current-pos)
+;; 				      tok))))
+;; ((eq ?< (string-to-char tok)) (let ((current-pos (point))
+;; 				    (pos (re-search-forward newspeak--type-hints nil t)))
+;; 				(if (and pos (= current-pos (match-beginning 0)))
+;; 				    (progn (goto-char (match-end 0))
+;; 					   "type-hint")
+;; 				  (progn (goto-char current-pos)
+;; 					 tok))))
+
+(defun newspeak--default-forward-token ()
+  "Skip token forward and return it."
+  (if (forward-comment 1)
+      "comment"
+    (buffer-substring-no-properties
+     (point)
+     (progn (if (zerop (skip-syntax-forward ".()"))
+		(skip-syntax-forward "w_'"))
+            (point)))))
+
+(defun newspeak--default-backward-token ()
+  "Skip token backward and return it."
+  (if (forward-comment -1)
+      "comment"
+    (buffer-substring-no-properties
+     (point)
+     (progn (if (zerop (skip-syntax-backward ".()"))
+		(skip-syntax-backward "w_'"))
+            (point)))))
 
 (defun newspeak--smie-forward-token ()
   "Skip token forward and return it, along with its levels."
   (let ((tok (smie-default-forward-token)))
-    (cond
-     ((eq ?| tok) "|-open")
-     (t tok))))
+    (newspeak--thought-control tok)))
 
 (defun newspeak--smie-backward-token ()
   "Skip token backward and return it, along with its levels."
   (let ((tok (smie-default-backward-token)))
-    (cond
-     ((member tok '("public" "private" "protected")) "modifier")
-     ((eq ?| tok) "|")
-     (t tok))))
+    (newspeak--thought-control tok)))
+
+(defun newspeak--forward-token ()
+  "Skip token forward and return it, along with its levels."
+  (let ((tok (newspeak--default-forward-token)))
+    (newspeak--thought-control tok)))
+
+(defun newspeak--backward-token ()
+  "Skip token backward and return it, along with its levels."
+  (let ((tok (newspeak--default-backward-token)))
+    (newspeak--thought-control tok)))
+
+(defun newspeak--look-ahead (&optional N)
+  "Find nearest token going forward.  Return number of tokens specified by N, or just one."
+  (let (lst)
+    (save-excursion
+      (while (< (length lst) (or N 1))
+	(push (newspeak--forward-token) lst))
+      (if N lst
+	(car lst)))))
+
+(defun newspeak--look-behind (&optional N)
+  "Find nearest token going backward.  Return number of tokens specified by N, or just one."
+  (let (lst)
+    (save-excursion
+      (while (< (length lst) (or N 1))
+	(push (newspeak--backward-token) lst))
+      (if N lst
+	(car lst)))))
 
 ;;;;
 
