@@ -133,6 +133,7 @@
    (smie-bnf->prec2
     '((id)
       (exp (id)
+	   ("|" exp "|")
 	   ("open-parenthesis" exp "close-parenthesis")
 	   ("class" exp)
 	   ("modifier" exp)))
@@ -146,9 +147,9 @@
     (`(:elem . basic) newspeak--indent-amount)
     (`(:before . "class") 0)
     (`(:before . "(") (cond
-		       ((string= "comment" (car (newspeak--look-ahead 2))) 0)
-		       ((string= "class" (car (newspeak--look-ahead 2))) 0)
-		       ((string= "|" (car (newspeak--look-ahead 2))) newspeak--indent-amount)
+		       ((string= "comment" (car (newspeak--scan-ahead 2))) 0)
+		       ((string= "class" (car (newspeak--scan-ahead 2))) 0)
+		       ((string= "|" (car (newspeak--scan-ahead 2))) newspeak--indent-amount)
 		       (t newspeak--indent-amount)))
     (`(:before . "=") 0)
     (`(:after . "(") 0)
@@ -164,30 +165,34 @@
 (defun newspeak--thought-control (tok)
   "Take a TOK and return a simpler one."
   (cond
-     ((string-match newspeak--access-modifiers tok) "modifier")
-     ((string-match newspeak--class-names tok) "class-name")
-     ((string-match newspeak--keyword-or-setter-send tok) "keyword-or-setter-send")
-     ((string= tok "class") "class")
-     ((eq ?\( (string-to-char tok)) "open-parenthesis")
-     ((eq ?\) (string-to-char tok)) "close-parenthesis")
-     ((eq ?^ (string-to-char tok)) "return")
-     ((eq ?| (string-to-char tok)) "|")
-     (t tok)))
+   ((string-match newspeak--access-modifiers tok) "modifier")
+   ((string-match newspeak--class-names tok) "class-name")
+   ((string-match newspeak--keyword-or-setter-send tok) "keyword-or-setter-send")
+   ((string= tok "class") "class")
+   ((eq ?\( (string-to-char tok)) "open-parenthesis")
+   ((eq ?\) (string-to-char tok)) "close-parenthesis")
+   ((eq ?^ (string-to-char tok)) "return")
+   ((eq ?| (string-to-char tok)) "|")
+   ((eq ?< (string-to-char tok)) (progn
+				   (backward-char)
+				   (if (looking-at newspeak--type-hints)
+				       (progn (goto-char (match-end 0))
+ 					      "type-hint")
+				     (progn
+				       (forward-char)
+				       tok))))
+   ((string= tok "]>") (progn
+			 (forward-char)
+			 (forward-char)
+			 (if (looking-back newspeak--type-hints 3)
+				   (progn (goto-char (match-beginning 0))
+ 					  "type-hint")
+				 (progn
+				   (backward-char)
+				   (backward-char)
+				   tok))))
+   (t tok)))
 
-;; ((eq ?> (char-before)) (let ((current-pos (point))
-;; 				 (pos (re-search-backward newspeak--type-hints nil t)))
-;; 			     (if (and pos (= current-pos (match-beginning 0)))
-;; 				 (progn (goto-char (match-end 0))
-;; 					"type-hint")
-;; 			       (progn (goto-char current-pos)
-;; 				      tok))))
-;; ((eq ?< (string-to-char tok)) (let ((current-pos (point))
-;; 				    (pos (re-search-forward newspeak--type-hints nil t)))
-;; 				(if (and pos (= current-pos (match-beginning 0)))
-;; 				    (progn (goto-char (match-end 0))
-;; 					   "type-hint")
-;; 				  (progn (goto-char current-pos)
-;; 					 tok))))
 
 (defun newspeak--default-forward-token ()
   "Skip token forward and return it."
@@ -229,7 +234,7 @@
   (let ((tok (newspeak--default-backward-token)))
     (newspeak--thought-control tok)))
 
-(defun newspeak--look-ahead (&optional N)
+(defun newspeak--scan-ahead (&optional N)
   "Find nearest token going forward.  Return number of tokens specified by N, or just one."
   (let (lst)
     (save-excursion
@@ -238,7 +243,7 @@
       (if N lst
 	(car lst)))))
 
-(defun newspeak--look-behind (&optional N)
+(defun newspeak--scan-behind (&optional N)
   "Find nearest token going backward.  Return number of tokens specified by N, or just one."
   (let (lst)
     (save-excursion
