@@ -15,7 +15,6 @@
 ;;; Code:
 
 (require 'rx)
-(require 'smie)
 
 ;;; syntax table
 
@@ -125,42 +124,7 @@
   "'Tab size'; used for simple indentation alignment."
   :type 'integer)
 
-;;;; SMIE
-;;;; https://www.gnu.org/software/emacs/manual/html_node/elisp/SMIE.html
-
-(defvar newspeak--smie-grammar
-  (smie-prec2->grammar
-   (smie-bnf->prec2
-    '((id)
-      (exp (id)
-	   ("|" exp "|")
-	   ("open-parenthesis" exp "close-parenthesis")
-	   ("class" exp)
-	   (exp "=" exp)
-	   ("modifier" exp)))
-    '((assoc ".")))))
-
-(defun newspeak--smie-rules (method arg)
-  "METHOD and ARG is rad."
-  (message (format  "method: %s arg: %s hanging?: %s first?: %s" method arg (smie-rule-hanging-p) (smie-rule-bolp)))
-  (pcase (cons method arg)
-    (`(:elem . basic) newspeak--indent-amount)
-    (`(:before . "class") 0)
-    (`(:before . "(") (cond
-		       ((string= "comment" (car (newspeak--scan-ahead 2))) 0)
-		       ((string= "class" (car (newspeak--scan-ahead 2))) 0)
-		       ((string= "|" (car (newspeak--scan-ahead 2))) newspeak--indent-amount)
-		       (t newspeak--indent-amount)))
-    (`(:before . "=") (smie-indent-fixindent))
-    (`(:after . "(") 0)
-    (`(:after . ")") 0)
-    (`(:before . "[") newspeak--indent-amount)
-    (`(:before . ".") (if (smie-rule-hanging-p)
-			  (smie-rule-parent)
-			0))
-    (`(:after . ".") 0)
-    (`(:list-intro . arg) nil)
-    (_ newspeak--indent-amount)))
+;;;; Scanner
 
 (defun newspeak--thought-control (tok)
   "Take a TOK and return a simpler one."
@@ -214,16 +178,6 @@
 		(skip-syntax-backward "w_'"))
             (point)))))
 
-(defun newspeak--smie-forward-token ()
-  "Skip token forward and return it, along with its levels."
-  (let ((tok (smie-default-forward-token)))
-    (newspeak--thought-control tok)))
-
-(defun newspeak--smie-backward-token ()
-  "Skip token backward and return it, along with its levels."
-  (let ((tok (smie-default-backward-token)))
-    (newspeak--thought-control tok)))
-
 (defun newspeak--forward-token ()
   "Skip token forward and return it, along with its levels."
   (let ((tok (newspeak--default-forward-token)))
@@ -252,8 +206,14 @@
       (if N lst
 	(car lst)))))
 
-;;;;
+;;;; Indentation logic
 
+(defun newspeak--indent-line ()
+  "Main indentation logic."
+  (cond
+   (t (indent-line-to (* 2 (car (syntax-ppss)))))))
+
+;;;;
 (defgroup newspeak-mode nil
   "Major mode for the Newspeak language"
   :prefix "newspeak-mode-"
@@ -271,10 +231,8 @@
   (setq-local prettify-symbols-alist newspeak-prettify-symbols-alist)
   (setq-local comment-start "(*")
   (setq-local comment-end "*)")
-  (setq open-paren-in-column-0-is-defun-start nil)
-  (smie-setup newspeak--smie-grammar #'newspeak--smie-rules
-	      :forward-token #'newspeak--default-forward-token
-	      :backward-token #'newspeak--default-backward-token))
+  (setq-local indent-line-function #'newspeak--indent-line)
+  (setq open-paren-in-column-0-is-defun-start nil))
 
 (provide 'newspeak-mode)
 
