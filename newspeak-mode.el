@@ -136,8 +136,8 @@
 	   ("|" exp "|")
 	   ("open-parenthesis" exp "close-parenthesis")
 	   ("class" exp)
+	   (exp "=" exp)
 	   ("modifier" exp)))
-    '((assoc ":"))
     '((assoc ".")))))
 
 (defun newspeak--smie-rules (method arg)
@@ -151,7 +151,7 @@
 		       ((string= "class" (car (newspeak--scan-ahead 2))) 0)
 		       ((string= "|" (car (newspeak--scan-ahead 2))) newspeak--indent-amount)
 		       (t newspeak--indent-amount)))
-    (`(:before . "=") 0)
+    (`(:before . "=") (smie-indent-fixindent))
     (`(:after . "(") 0)
     (`(:after . ")") 0)
     (`(:before . "[") newspeak--indent-amount)
@@ -159,7 +159,7 @@
 			  (smie-rule-parent)
 			0))
     (`(:after . ".") 0)
-    (`(:list-intro . arg) t)
+    (`(:list-intro . arg) nil)
     (_ newspeak--indent-amount)))
 
 (defun newspeak--thought-control (tok)
@@ -271,9 +271,10 @@
   (setq-local prettify-symbols-alist newspeak-prettify-symbols-alist)
   (setq-local comment-start "(*")
   (setq-local comment-end "*)")
+  (setq open-paren-in-column-0-is-defun-start nil)
   (smie-setup newspeak--smie-grammar #'newspeak--smie-rules
-	      :forward-token #'newspeak--smie-forward-token
-	      :backward-token #'newspeak--smie-backward-token))
+	      :forward-token #'newspeak--default-forward-token
+	      :backward-token #'newspeak--default-backward-token))
 
 (provide 'newspeak-mode)
 
