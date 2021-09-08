@@ -232,6 +232,27 @@
 	(push (newspeak--backward-token) lst))
       (string= "open-block" (car lst)))))
 
+(defun newspeak--first-line-in-block-p ()
+  "Return TRUE if we are indenting the first line in a code block."
+  (let ((line (current-line)))
+    (save-excursion
+      (re-search-backward (rx "["))
+      (= (- line 1) (current-line)))))
+
+(defun newspeak--closing-block-p ()
+  "Return TRUE if we are indenting the first line in a code block."
+  (let ((line (current-line)))
+    (save-excursion
+      (re-search-forward (rx "]"))
+      (= line (current-line)))))
+
+(defun newspeak--column-token (REGEX)
+  "Return column of beginning of line containing REGEX."
+  (save-excursion
+    (re-search-backward REGEX)
+    (back-to-indentation)
+    (current-column)))
+
 (defun newspeak--modifier-p ()
   "Return TRUE if line begins with a modifier."
   (save-excursion
@@ -273,8 +294,12 @@
    ((newspeak--modifier-p) (if (newspeak--within-slots-p)
 			       (indent-line-to newspeak--basic-indent)
 			       (indent-to-column 0)) )
-   ((newspeak--|-p) (indent-line-to newspeak--basic-indent))
-   ((newspeak--within-block-p) (indent-relative-first-indent-point))
+   ((newspeak--|-p) (if (not (newspeak--within-block-p))
+		      (indent-line-to newspeak--basic-indent)))
+   ((newspeak--within-block-p) (let ((column (newspeak--column-token (rx "["))))
+				 (if (newspeak--closing-block-p)
+				     (indent-line-to column)
+				   (indent-line-to (+ column newspeak--basic-indent)))))
    (t (indent-line-to (if (> (car (syntax-ppss)) 1)
 			  newspeak--basic-indent
 			0)))))
