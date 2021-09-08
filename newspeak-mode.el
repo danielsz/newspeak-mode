@@ -120,7 +120,7 @@
 
 ;;;;
 
-(defcustom newspeak--indent-amount 2
+(defcustom newspeak--basic-indent 2
   "'Tab size'; used for simple indentation alignment."
   :type 'integer)
 
@@ -133,8 +133,11 @@
    ((string-match newspeak--class-names tok) "class-name")
    ((string-match newspeak--keyword-or-setter-send tok) "keyword-or-setter-send")
    ((string= tok "class") "class")
+   ((eq ?' (string-to-char tok)) "string-delimiter")
    ((eq ?\( (string-to-char tok)) "open-parenthesis")
    ((eq ?\) (string-to-char tok)) "close-parenthesis")
+   ((eq ?\[ (string-to-char tok)) "open-block")
+   ((eq ?\] (string-to-char tok)) "close-block")
    ((eq ?^ (string-to-char tok)) "return")
    ((eq ?| (string-to-char tok)) "|")
    ((eq ?< (string-to-char tok)) (progn
@@ -157,7 +160,6 @@
 				   tok))))
    (t tok)))
 
-
 (defun newspeak--default-forward-token ()
   "Skip token forward and return it."
   (if (forward-comment 1)
@@ -170,13 +172,17 @@
 
 (defun newspeak--default-backward-token ()
   "Skip token backward and return it."
-  (if (forward-comment -1)
-      "comment"
-    (buffer-substring-no-properties
+  (cond
+   ((newspeak--within-comment-p) (progn (goto-char (nth 8 (syntax-ppss)))
+					"comment"))
+   ((forward-comment -1) "comment")
+   ((newspeak--within-string-p) (progn (goto-char (nth 8 (syntax-ppss)))
+				  "string"))
+   (t (buffer-substring-no-properties
      (point)
-     (progn (if (zerop (skip-syntax-backward ".()"))
+     (progn (if (zerop (skip-syntax-backward ".()\""))
 		(skip-syntax-backward "w_'"))
-            (point)))))
+            (point))))))
 
 (defun newspeak--forward-token ()
   "Skip token forward and return it, along with its levels."
@@ -188,30 +194,90 @@
   (let ((tok (newspeak--default-backward-token)))
     (newspeak--thought-control tok)))
 
-(defun newspeak--scan-ahead (&optional N)
-  "Find nearest token going forward.  Return number of tokens specified by N, or just one."
+(defun newspeak--scan-ahead (&optional COUNT)
+  "Find nearest token going forward.  Return number of tokens specified by COUNT, or just one."
   (let (lst)
     (save-excursion
-      (while (< (length lst) (or N 1))
+      (while (< (length lst) (or COUNT 1))
 	(push (newspeak--forward-token) lst))
-      (if N lst
+      (if COUNT
+	  lst
 	(car lst)))))
 
-(defun newspeak--scan-behind (&optional N)
-  "Find nearest token going backward.  Return number of tokens specified by N, or just one."
+(defun newspeak--scan-behind (&optional COUNT)
+  "Find nearest token going backward.  Return number of tokens specified by COUNT, or just one."
   (let (lst)
     (save-excursion
-      (while (< (length lst) (or N 1))
+      (while (< (length lst) (or COUNT 1))
 	(push (newspeak--backward-token) lst))
-      (if N lst
+      (if COUNT
+	  lst
 	(car lst)))))
 
 ;;;; Indentation logic
 
+(defun newspeak--within-slots-p ()
+  "Return TRUE if we are in a slots declaration."
+  (let (lst)
+    (save-excursion
+      (while (not (or (bobp) (member "|" lst) (member "open-parenthesis" lst)))
+	(push (newspeak--backward-token) lst))
+      (string= "|" (car lst)))))
+
+(defun newspeak--within-block-p ()
+  "Return TRUE if we are in a code block."
+  (let (lst)
+    (save-excursion
+      (while (not (or (bobp) (member "open-block" lst) (member "|" lst) (member "open-parenthesis" lst)))
+	(push (newspeak--backward-token) lst))
+      (string= "open-block" (car lst)))))
+
+(defun newspeak--modifier-p ()
+  "Return TRUE if line begins with a modifier."
+  (save-excursion
+    (beginning-of-line)
+    (string= "modifier" (newspeak--scan-ahead))))
+
+(defun newspeak--class-p ()
+  "Return TRUE if line begins with a modifier."
+  (save-excursion
+    (beginning-of-line)
+    (string= "class" (newspeak--scan-ahead))))
+
+(defun newspeak--close-parenthesis-p ()
+  "Return TRUE if line begins with a close-parenthesis."
+  (save-excursion
+    (beginning-of-line)
+    (string= "close-parenthesis" (newspeak--scan-ahead))))
+
+(defun newspeak--|-p ()
+  "Return TRUE if line begins with a |."
+  (save-excursion
+    (beginning-of-line)
+    (string= "|" (newspeak--scan-ahead))))
+
+(defun newspeak--within-comment-p ()
+  "Return TRUE if point is within a comment."
+  (nth 4 (syntax-ppss)))
+
+(defun newspeak--within-string-p ()
+  "Return TRUE if point is within a comment."
+  (nth 3 (syntax-ppss)))
+
 (defun newspeak--indent-line ()
   "Main indentation logic."
   (cond
-   (t (indent-line-to (* 2 (car (syntax-ppss)))))))
+   ((string= "comment" (newspeak--scan-ahead)) nil)
+   ((newspeak--class-p) (indent-line-to 0))
+   ((newspeak--close-parenthesis-p) (indent-line-to 0))
+   ((newspeak--modifier-p) (if (newspeak--within-slots-p)
+			       (indent-line-to newspeak--basic-indent)
+			       (indent-to-column 0)) )
+   ((newspeak--|-p) (indent-line-to newspeak--basic-indent))
+   ((newspeak--within-block-p) (indent-relative-first-indent-point))
+   (t (indent-line-to (if (> (car (syntax-ppss)) 1)
+			  newspeak--basic-indent
+			0)))))
 
 ;;;;
 (defgroup newspeak-mode nil
