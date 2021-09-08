@@ -263,7 +263,7 @@
   "Return TRUE if line begins with a modifier."
   (save-excursion
     (beginning-of-line)
-    (string= "class" (newspeak--scan-ahead))))
+    (member"class" (newspeak--scan-ahead 2))))
 
 (defun newspeak--close-parenthesis-p ()
   "Return TRUE if line begins with a close-parenthesis."
@@ -293,7 +293,7 @@
    ((newspeak--close-parenthesis-p) (indent-line-to 0))
    ((newspeak--modifier-p) (if (newspeak--within-slots-p)
 			       (indent-line-to newspeak--basic-indent)
-			       (indent-to-column 0)) )
+			       (indent-line-to 0)) )
    ((newspeak--|-p) (if (not (newspeak--within-block-p))
 		      (indent-line-to newspeak--basic-indent)))
    ((newspeak--within-block-p) (let ((column (newspeak--column-token (rx "["))))
