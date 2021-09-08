@@ -59,8 +59,8 @@ Because this is Emacs, matching parentheses is best left to the myriad of modes 
 ** Road map
 
 - [✓] Syntax highlighting
-- [ ] Automatic indentation.
-- [ ] Syntax-aware navigation.
+- [✓] Automatic indentation.
+- [✓] Syntax-aware navigation.
 - [ ] Code templates.
 - [ ] REPL interaction
 - [✓] Support for prettify-symbols-mode.
