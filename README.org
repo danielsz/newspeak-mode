@@ -55,6 +55,13 @@ Because this is Emacs, matching parentheses is best left to the myriad of modes 
 #+begin_src emacs-lisp
 (add-hook 'newspeak-mode-hook 'rainbow-delimiters-mode)
 #+end_src
+*** Indentation
+
+The indentation logic uses a backward parsing strategy aided by a bespoke bi-directional scanner that understands Newspeak syntactic constructs.
+
+The file ~sample.ns~ contains the commentary about how a Newspeak source file should be indented. It is canonical since those words come straight from the author of the language, [[https://github.com/gbracha][Gilad Bracha]].
+
+Caveat: the indentation engine does not yet fulfill its contract.
 
 ** Road map
 
