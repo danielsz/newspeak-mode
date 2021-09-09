@@ -4,14 +4,15 @@
 ;; Maintainer: Daniel Szmulewicz <daniel.szmulewicz@gmail.com>
 ;; Version: 1.0
 ;; © 2021 Daniel Szmulewicz
-
+;; Package-Requires: ((emacs "24.3"))
 ;;; Commentary:
 
 ;; Major mode for Newspeak (https://newspeaklanguage.org//)
+;; URL: https://github.com/danielsz/newspeak-mode
 
 ;; Provides the following functionality:
 ;; - Syntax highlighting.
-
+;; - Indentation
 ;;; Code:
 
 (require 'rx)
@@ -34,14 +35,9 @@
 
 ;;;;; Customization
 
-(defgroup newspeak-mode ()
+(defgroup newspeak ()
   "Custom group for the Newspeak major mode"
   :group 'languages)
-
-
-(defgroup newspeak-mode-faces nil
-  "Special faces for Newspeak mode."
-  :group 'newspeak-mode)
 
 ;;;;; font-lock
 ;;;;; syntax highlighting
@@ -49,47 +45,47 @@
 (defface newspeak--font-lock-type-face
   '((t (:inherit font-lock-type-face :bold t)))
   "Face description for types"
-  :group 'newspeak-mode-faces)
+  :group 'newspeak)
 
 (defface newspeak--font-lock-builtin-face
   '((t (:inherit font-lock-builtin-face)))
   "Face description for access modifiers"
-  :group 'newspeak-mode-faces)
+  :group 'newspeak)
 
 (defface newspeak--font-lock-constant-face
   '((t (:inherit font-lock-constant-face)))
   "Face description for reserved keywords"
-  :group 'newspeak-mode-faces)
+  :group 'newspeak)
 
 (defface newspeak--font-lock-keyword-face
   '((t (:inherit font-lock-keyword-face)))
   "Face description for block arguments"
-  :group 'newspeak-mode-faces)
+  :group 'newspeak)
 
 (defface newspeak--font-lock-warning-face
   '((t (:inherit font-lock-warning-face)))
   "Face description for `Newspeak3'"
-  :group 'newspeak-mode-faces)
+  :group 'newspeak)
 
 (defface newspeak--font-lock-variable-name-face
   '((t (:inherit font-lock-variable-name-face)))
   "Face description for slot assignments"
-  :group 'newspeak-mode-faces)
+  :group 'newspeak)
 
 (defface newspeak--font-lock-function-name-face
   '((t (:inherit font-lock-function-name-face)))
   "Face description for keyword and setter sends"
-  :group 'newspeak-mode-faces)
+  :group 'newspeak)
 
 (defface newspeak--font-lock-string-face
   '((t (:inherit font-lock-string-face)))
   "Face description for strings"
-  :group 'newspeak-mode-faces)
+  :group 'newspeak)
 
 (defface newspeak--font-lock-comment-face
   '((t (:inherit font-lock-comment-face)))
   "Face description for comments"
-  :group 'newspeak-mode-faces)
+  :group 'newspeak)
 
 (defvar newspeak-prettify-symbols-alist
   '(("^" . ?⇑)
@@ -304,11 +300,6 @@
 			  newspeak--basic-indent
 			0)))))
 
-;;;;
-(defgroup newspeak-mode nil
-  "Major mode for the Newspeak language"
-  :prefix "newspeak-mode-"
-  :group 'languages)
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist `(,(rx ".ns" eos) . newspeak-mode))
