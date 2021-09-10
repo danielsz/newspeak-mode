@@ -241,17 +241,17 @@
 
 (defun newspeak--first-line-in-block-p ()
   "Return TRUE if we are indenting the first line in a code block."
-  (let ((line (current-line)))
+  (let ((line (line-number-at-pos)))
     (save-excursion
       (re-search-backward (rx "["))
-      (= (- line 1) (current-line)))))
+      (= (- line 1) (line-number-at-pos)))))
 
 (defun newspeak--closing-block-p ()
   "Return TRUE if we are indenting the first line in a code block."
-  (let ((line (current-line)))
+  (let ((line (line-number-at-pos)))
     (save-excursion
       (re-search-forward (rx "]"))
-      (= line (current-line)))))
+      (= line (line-number-at-pos)))))
 
 (defun newspeak--column-token (REGEX)
   "Return column of beginning of line containing REGEX."
