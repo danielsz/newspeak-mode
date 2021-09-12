@@ -27,8 +27,8 @@ Fully configurable under the customization group ~newspeak-mode-faces~.
 
 The following are different ways to customize syntax highlighting of Newspeak mode, and all are equally valid.
 
-- ~M-x customize~ and type ~newspeak-mode-faces~ in the search bar.
-- ~M-x customize-group~ and select ~newspeak-mode-faces~
+- ~M-x customize~ and type ~newspeak~ in the search bar.
+- ~M-x customize-group~ and select ~newspeak~
 - ~M-x customize-face~, type ~newspeak~ and press ~TAB~ for completion.
    
 The font lock system is mapped onto Newspeak constructs in the following way.
