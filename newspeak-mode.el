@@ -5,14 +5,6 @@
 ;; Version: 1.0
 ;; © 2021 Daniel Szmulewicz
 ;; Package-Requires: ((emacs "24.3"))
-;;; Commentary:
-
-;; Major mode for Newspeak (https://newspeaklanguage.org//)
-;; URL: https://github.com/danielsz/newspeak-mode
-
-;; Provides the following functionality:
-;; - Syntax highlighting.
-;; - Indentation
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -23,6 +15,15 @@
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
+
+;;; Commentary:
+
+;; Major mode for Newspeak (https://newspeaklanguage.org//)
+;; URL: https://github.com/danielsz/newspeak-mode
+
+;; Provides the following functionality:
+;; - Syntax highlighting.
+;; - Indentation
 
 ;;; Code:
 
@@ -53,47 +54,47 @@
 ;;;;; font-lock
 ;;;;; syntax highlighting
 
-(defface newspeak--font-lock-type-face
+(defface newspeak-font-lock-type-face
   '((t (:inherit font-lock-type-face :bold t)))
   "Face description for types"
   :group 'newspeak)
 
-(defface newspeak--font-lock-builtin-face
+(defface newspeak-font-lock-builtin-face
   '((t (:inherit font-lock-builtin-face)))
   "Face description for access modifiers"
   :group 'newspeak)
 
-(defface newspeak--font-lock-constant-face
+(defface newspeak-font-lock-constant-face
   '((t (:inherit font-lock-constant-face)))
   "Face description for reserved keywords"
   :group 'newspeak)
 
-(defface newspeak--font-lock-keyword-face
+(defface newspeak-font-lock-keyword-face
   '((t (:inherit font-lock-keyword-face)))
   "Face description for block arguments"
   :group 'newspeak)
 
-(defface newspeak--font-lock-warning-face
+(defface newspeak-font-lock-warning-face
   '((t (:inherit font-lock-warning-face)))
   "Face description for `Newspeak3'"
   :group 'newspeak)
 
-(defface newspeak--font-lock-variable-name-face
+(defface newspeak-font-lock-variable-name-face
   '((t (:inherit font-lock-variable-name-face)))
   "Face description for slot assignments"
   :group 'newspeak)
 
-(defface newspeak--font-lock-function-name-face
+(defface newspeak-font-lock-function-name-face
   '((t (:inherit font-lock-function-name-face)))
   "Face description for keyword and setter sends"
   :group 'newspeak)
 
-(defface newspeak--font-lock-string-face
+(defface newspeak-font-lock-string-face
   '((t (:inherit font-lock-string-face)))
   "Face description for strings"
   :group 'newspeak)
 
-(defface newspeak--font-lock-comment-face
+(defface newspeak-font-lock-comment-face
   '((t (:inherit font-lock-comment-face)))
   "Face description for comments"
   :group 'newspeak)
@@ -115,19 +116,19 @@
 (defconst newspeak--keyword-or-setter-send (rx (or alpha ?_) (* (or alphanumeric ?_)) (** 1 2 ?:)))
 
 (defconst newspeak-font-lock
-  `((,newspeak--reserved-words . 'newspeak--font-lock-constant-face)                 ;; reserved words
-    (,newspeak--access-modifiers . 'newspeak--font-lock-builtin-face)                ;; access modifiers
-    (,newspeak--block-arguments . 'newspeak--font-lock-keyword-face)                 ;; block arguments
-    (,newspeak--symbol-literals . 'newspeak--font-lock-keyword-face)                 ;; symbol literals
-    (,newspeak--peculiar-construct . 'newspeak--font-lock-warning-face)              ;; peculiar construct
-    (,newspeak--class-names . 'newspeak--font-lock-type-face)                        ;; class names
-    (,newspeak--slots . 'newspeak--font-lock-variable-name-face)                     ;; slots
-    (,newspeak--type-hints . 'newspeak--font-lock-type-face)                         ;; type hints
-    (,newspeak--keyword-or-setter-send . 'newspeak--font-lock-function-name-face)))  ;; keyword send and setter send
+  `((,newspeak--reserved-words . 'newspeak-font-lock-constant-face)                 ;; reserved words
+    (,newspeak--access-modifiers . 'newspeak-font-lock-builtin-face)                ;; access modifiers
+    (,newspeak--block-arguments . 'newspeak-font-lock-keyword-face)                 ;; block arguments
+    (,newspeak--symbol-literals . 'newspeak-font-lock-keyword-face)                 ;; symbol literals
+    (,newspeak--peculiar-construct . 'newspeak-font-lock-warning-face)              ;; peculiar construct
+    (,newspeak--class-names . 'newspeak-font-lock-type-face)                        ;; class names
+    (,newspeak--slots . 'newspeak-font-lock-variable-name-face)                     ;; slots
+    (,newspeak--type-hints . 'newspeak-font-lock-type-face)                         ;; type hints
+    (,newspeak--keyword-or-setter-send . 'newspeak-font-lock-function-name-face)))  ;; keyword send and setter send
 
 ;;;;
 
-(defcustom newspeak--basic-indent 2
+(defcustom newspeak-basic-indent 2
   "'Tab size'; used for simple indentation alignment."
   :type 'integer)
 
@@ -201,23 +202,23 @@
   (let ((tok (newspeak--default-backward-token)))
     (newspeak--thought-control tok)))
 
-(defun newspeak--scan-ahead (&optional COUNT)
+(defun newspeak--scan-ahead (&optional count)
   "Find nearest token going forward.  Return number of tokens specified by COUNT, or just one."
   (let (lst)
     (save-excursion
-      (while (< (length lst) (or COUNT 1))
+      (while (< (length lst) (or count 1))
 	(push (newspeak--forward-token) lst))
-      (if COUNT
+      (if count
 	  lst
 	(car lst)))))
 
-(defun newspeak--scan-behind (&optional COUNT)
+(defun newspeak--scan-behind (&optional count)
   "Find nearest token going backward.  Return number of tokens specified by COUNT, or just one."
   (let (lst)
     (save-excursion
-      (while (< (length lst) (or COUNT 1))
+      (while (< (length lst) (or count 1))
 	(push (newspeak--backward-token) lst))
-      (if COUNT
+      (if count
 	  lst
 	(car lst)))))
 
@@ -299,16 +300,16 @@
    ((newspeak--class-p) (indent-line-to 0))
    ((newspeak--close-parenthesis-p) (indent-line-to 0))
    ((newspeak--modifier-p) (if (newspeak--within-slots-p)
-			       (indent-line-to newspeak--basic-indent)
+			       (indent-line-to newspeak-basic-indent)
 			       (indent-line-to 0)) )
    ((newspeak--|-p) (if (not (newspeak--within-block-p))
-		      (indent-line-to newspeak--basic-indent)))
+		      (indent-line-to newspeak-basic-indent)))
    ((newspeak--within-block-p) (let ((column (newspeak--column-token (rx "["))))
 				 (if (newspeak--closing-block-p)
 				     (indent-line-to column)
-				   (indent-line-to (+ column newspeak--basic-indent)))))
+				   (indent-line-to (+ column basic-indent)))))
    (t (indent-line-to (if (> (car (syntax-ppss)) 1)
-			  newspeak--basic-indent
+			  newspeak-basic-indent
 			0)))))
 
 
@@ -316,11 +317,11 @@
 (add-to-list 'auto-mode-alist `(,(rx ".ns" eos) . newspeak-mode))
 
 ;;;###autoload
-(define-derived-mode newspeak-mode prog-mode "1984"
+(define-derived-mode newspeak-mode prog-mode "newspeak"
   "Major mode for editing Newspeak files."
   (setq-local font-lock-defaults '(newspeak-font-lock))
-  (setq-local font-lock-string-face 'newspeak--font-lock-string-face)
-  (setq-local font-lock-comment-face 'newspeak--font-lock-comment-face)
+  (setq-local font-lock-string-face 'newspeak-font-lock-string-face)
+  (setq-local font-lock-comment-face 'newspeak-font-lock-comment-face)
   (setq-local prettify-symbols-alist newspeak-prettify-symbols-alist)
   (setq-local comment-start "(*")
   (setq-local comment-end "*)")
