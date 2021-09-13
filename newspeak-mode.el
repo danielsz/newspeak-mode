@@ -307,7 +307,7 @@
    ((newspeak--within-block-p) (let ((column (newspeak--column-token (rx "["))))
 				 (if (newspeak--closing-block-p)
 				     (indent-line-to column)
-				   (indent-line-to (+ column basic-indent)))))
+				   (indent-line-to (+ column newspeak-basic-indent)))))
    (t (indent-line-to (if (> (car (syntax-ppss)) 1)
 			  newspeak-basic-indent
 			0)))))
