@@ -8,9 +8,13 @@ Major mode (/Emacs/) for the [[https://newspeaklanguage.org/][Newspeak]] program
 
 *** MELPA
 
-Newspeak mode will be available via the MELPA repository. Meanwhile, please refer to the section below.
+Newspeak mode is available via the MELPA repository.
 
-*** Manually
+#+begin_src emacs-lisp
+  M-x package-install RET newspeak-mode RET
+#+end_src
+
+*** Manual
 
 - Clone this repository.
 - Add the following to your initialization file (e.g. ~init.el~):
@@ -28,8 +32,8 @@ Fully configurable under the customization group ~newspeak-mode-faces~.
 The following are different ways to customize syntax highlighting of Newspeak mode, and all are equally valid.
 
 - ~M-x customize~ and type ~newspeak~ in the search bar.
-- ~M-x customize-group~ and select ~newspeak~
-- ~M-x customize-face~, type ~newspeak~ and press ~TAB~ for completion.
+- ~M-x customize-group RET newspeak~.
+- ~M-x customize-face RET newspeak~ and press ~TAB~ for completion.
    
 The font lock system is mapped onto Newspeak constructs in the following way.
 
