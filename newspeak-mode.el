@@ -312,6 +312,13 @@
 			  newspeak-basic-indent
 			0)))))
 
+;;; M-x compile
+
+(defcustom headless-executable nil
+  "Newspeak user-defined location of the headless interpreter."
+  :type 'string)
+
+(defvar newspeak-executable (or headless-executable (executable-find "som")) "The path to a Newspeak executable.  Either supplied by user or found in PATH.")
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist `(,(rx ".ns" eos) . newspeak-mode))
@@ -326,6 +333,7 @@
   (setq-local comment-start "(*")
   (setq-local comment-end "*)")
   (setq-local indent-line-function #'newspeak--indent-line)
+  (setq-local compile-command (format "%s -G %s" newspeak-executable buffer-file-name))
   (setq open-paren-in-column-0-is-defun-start nil))
 
 (provide 'newspeak-mode)
