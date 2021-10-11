@@ -27,7 +27,7 @@ Newspeak mode is available via the MELPA repository.
 
 *** Syntax highlighting
 
-Fully configurable under the customization group ~newspeak-mode-faces~.
+Fully configurable under the customization group ~newspeak~.
 
 The following are different ways to customize syntax highlighting of Newspeak mode, and all are equally valid.
 
@@ -67,11 +67,16 @@ The file ~sample.ns~ contains the commentary about how a Newspeak source file sh
 
 Caveat: the indentation engine does not yet fulfill its contract.
 
+*** Evaluation
+
+~M-x compile~ will evaluate the current buffer in a Newspeak headless environment, such as [[https://github.com/smarr/SOMns][SOMns]]. The path to such script can be supplied via mode customization. If ~som~ is in your path, it will be automatically selected. 
+
 ** Road map
 
 - [✓] Syntax highlighting
 - [✓] Automatic indentation.
 - [✓] Syntax-aware navigation.
+- [✓] Evaluation 
 - [ ] Code templates.
 - [ ] REPL interaction
 - [✓] Support for prettify-symbols-mode.
